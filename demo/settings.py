@@ -64,8 +64,9 @@ ROBOTSTXT_OBEY = True
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-ITEM_PIPELINES = {
-   "demo.pipelines.MySQLBookPipeline": 300,
+ITEM_PIPELINES = {    
+   "demo.pipelines.ValidateBookItemPipeline": 300, 
+   "demo.pipelines.MySQLBookPipeline": 310,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)

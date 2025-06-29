@@ -6,9 +6,11 @@
 
 # useful for handling different item types with a single interface
 from itemadapter import ItemAdapter
+from scrapy.exceptions import DropItem
 
 import mysql.connector
 from datetime import date
+import re
 
 class MySQLBookPipeline:
     def open_spider(self, spider):
@@ -38,7 +40,10 @@ class MySQLBookPipeline:
         today = date.today()
 
         self.cursor.execute("""
-            INSERT INTO daily_trending_book (date, title, author, published_date) VALUES (%s, %s, %s, %s)
+            INSERT INTO daily_trending_book (date, title, author, published_date) 
+            VALUES (%s, %s, %s, %s)
+            ON DUPLICATE KEY UPDATE
+            published_date = VALUES(published_date)
         """, (
             today,
             item.get('title'),
@@ -47,3 +52,17 @@ class MySQLBookPipeline:
         ))
         self.connection.commit()
         return item
+
+
+
+class ValidateBookItemPipeline:
+
+    def process_item(self, item, spider):
+        adapter = ItemAdapter(item)
+        published_date = adapter.get("published_date")
+        published_year = re.search(r'\b(1[0-9]{3}|20[0-9]{2}|21[0-9]{2}|22[0-9]{2})\b', published_date)
+
+        if published_year and int(published_year.group(0)) >= 2020:
+            return item
+        else:
+            raise DropItem("Published date does not exist or oo old")
