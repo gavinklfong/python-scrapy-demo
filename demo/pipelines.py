@@ -37,6 +37,7 @@ class MySQLBookPipeline:
         self.connection.close()
 
     def process_item(self, item, spider):
+        adapter = ItemAdapter(item)
         today = date.today()
 
         self.cursor.execute("""
@@ -46,9 +47,9 @@ class MySQLBookPipeline:
             published_date = VALUES(published_date)
         """, (
             today,
-            item.get('title'),
-            item.get('author'),
-            item.get('published_date')
+            adapter.get('title'),
+            adapter.get('author'),
+            adapter.get('published_date')
         ))
         self.connection.commit()
         return item
@@ -65,4 +66,4 @@ class ValidateBookItemPipeline:
         if published_year and int(published_year.group(0)) >= 2020:
             return item
         else:
-            raise DropItem("Published date does not exist or oo old")
+            raise DropItem("Published date does not exist or too old")
