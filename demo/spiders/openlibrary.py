@@ -1,5 +1,6 @@
 import scrapy
 
+from ..items import BookItem
 
 def extract_with_css(item, query):
     return item.css(query).get(default="").strip()
@@ -22,13 +23,13 @@ class OpenLibrarySpider(scrapy.Spider):
         
         # Extract book details
         for item in book_items:
-            yield {
-                "title": item.css('h3.booktitle > a::text').get(default='').strip(),
-                "author": extract_with_css(item, "span.bookauthor > a::text"),
-                "published_date": extract_with_css(item, "span.resultStats > span.resultDetails > span:nth-child(1)::text"),
-            }
+            book = BookItem()
+            book['title'] = item.css('h3.booktitle > a::text').get(default='').strip()
+            book['author'] = extract_with_css(item, "span.bookauthor > a::text")
+            book['published_date'] = extract_with_css(item, "span.resultStats > span.resultDetails > span:nth-child(1)::text")
+            yield book
 
         # Handle pagination
-        next_page = response.css("#contentBody > div.pager > div > a:last-child::attr(href)").get()
-        if next_page:
-            yield response.follow(next_page, self.parse_book_list)
+        # next_page = response.css("#contentBody > div.pager > div > a:last-child::attr(href)").get()
+        # if next_page:
+        #     yield response.follow(next_page, self.parse_book_list)
